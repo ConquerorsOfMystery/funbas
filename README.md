@@ -1,3 +1,3 @@
 
 
-[Click here](https://davidmhsw.github.io/funbas/)
+[Click here](https://conquerors_of_mystery.codeberg.page/seabass_tut/)
