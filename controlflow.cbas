@@ -1,0 +1,116 @@
+#include "funbas.hbas"
+
+    
+byte* ourFont = 0; //the variable used to store our font!
+
+
+fn appInit():
+    openWindow(
+        "Joy!",
+        1280,
+        720
+    );
+    setSwapInterval(1); //enable Vsync
+    //load our font! (Must be AFTER openWindow)
+    ourFont = loadFont(
+        "fonts/jupiteroid/Bold.ttf", 
+        64
+    );
+end
+
+int keypressed = 0;
+uint keypresses = 2;
+
+fn appUpdate():
+    clearScreen(0.1,0.1,0.3);
+    beginUI();
+        glColor3f(0.8,0.8,1);
+        if(keypressed)
+            if(keypressed == KEY_H)
+                renderText(
+                    "You are pressing H!",
+                    ourFont,100,128,64
+                );
+            elif(keypressed == KEY_J)
+                renderText(
+                    "You are pressing J!",
+                    ourFont,100,128,64
+                );
+            else
+                renderText(
+                    "Good!", 
+                    ourFont,100,128,64
+                );
+            end
+        else
+            renderText(
+                "Try pressing a key.",
+                ourFont,100,128,64
+            );
+        end
+        //demo switch....
+        switch(keypresses%3) mod_0, mod_1, mod_2;
+        
+        :mod_0
+        renderText(
+                "Hey...", 
+                ourFont,100,200,64
+            );
+
+        jump after
+        :mod_1
+        renderText(
+                "There!", 
+                ourFont,100,200,64
+            );
+        jump after
+        :mod_2
+            
+        :after
+        
+    endUI();
+    swapDisplay();
+end
+
+fn appClose():
+    free(ourFont);
+    closeWindow;
+end
+
+fn onClick(int btn, int state):
+
+end
+
+fn onTextInput(char* text):
+
+end
+
+fn onTextEdit(char* text, int start, int length):
+
+end
+
+fn onKey(int kc, char state):
+    if(state == 0 && kc == KEY_ESCAPE)
+        appClose();
+        sys_exit(0);
+    end
+    if(state == 1)
+        keypressed = kc;
+        keypresses++;
+    elif(keypressed == kc)
+        keypressed = 0;
+    end
+end
+
+fn onKeyRepeat(int kc, char state):
+
+end
+
+
+fn onResize(int w, int h):
+    glViewport(0,0,width,height);
+end
+
+fn onScroll(int x, int y):
+
+end

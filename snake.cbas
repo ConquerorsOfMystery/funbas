@@ -1,0 +1,319 @@
+#include "funbas.hbas"
+
+byte* ourFont = 0;
+byte* eatSound = 0;
+byte* music = 0;
+
+//this gets re-used for the food....
+struct snake_segment
+    int x
+    int y
+end
+
+//constants... accessed with constexpri(NAME)
+codegen int SNAKE_MAX_SEGS = 20;
+codegen int SCREEN_WIDTH = 128/2;
+codegen int SCREEN_HEIGHT = 72/2;
+#define DIR_UP 1
+#define DIR_LEFT 2
+#define DIR_RIGHT 3
+#define DIR_DOWN 4
+
+snake_segment[SNAKE_MAX_SEGS] segs;
+
+
+uint snake_length = 2; //start out length 2...
+
+
+
+
+int mode = -1; //-1 - waiting for user input... 0 - playing, 1 - win, 2 - lose
+int direction = DIR_RIGHT; //why not :)
+
+//we actually use a snake segment for food....
+snake_segment food;
+
+fn randomizeFood:
+    food.x = ((uint)rand()) % (uint)constexpri(SCREEN_WIDTH);
+    food.y = ((uint)rand()) % (uint)constexpri(SCREEN_HEIGHT);
+    u64 i
+    for(i = 0, i < snake_length, i++)
+        if(food.x == segs[i].x && food.y == segs[i].y)
+            //the food is on top of a snake segment! Recalculate...
+            tail randomizeFood
+        end
+    end
+end
+
+procedure advanceSnake:
+    //the new position...
+    int nx = segs[0].x;
+    int ny = segs[0].y;
+    //based on direction...
+    if(direction == DIR_RIGHT) 
+        nx++
+    elif(direction == DIR_LEFT) 
+        nx--
+    elif(direction == DIR_UP) 
+        ny--
+    elif(direction == DIR_DOWN) 
+        ny++
+    end
+    if(nx < 0) 
+        nx = nx + constexpri(SCREEN_WIDTH); 
+    elif(ny < 0) 
+        ny = ny + constexpri(SCREEN_HEIGHT); 
+    end
+    nx = nx % constexpri(SCREEN_WIDTH);
+    ny = ny % constexpri(SCREEN_HEIGHT);
+    i64 i
+    //every segment except the first now has the position of the one ahead of it....
+    for(i = snake_length-1; i > 0; i--)
+        //the move operator- used to copy between pointers. Used here
+        //to copy between struct variables.
+        segs[i] := segs[i-1]
+    end
+    //the first has the new x and y...
+    segs[0].x = nx;
+    segs[0].y = ny;
+end
+
+proc renderSnake:
+    float seg_width = (float)width / constexprf(SCREEN_WIDTH);
+    float seg_height = (float)height / constexprf(SCREEN_HEIGHT);
+    //the snake is white....
+    //for each segment, render a square
+    //equivalent to its size
+    i64 i
+    glColor3f(0.5,1,0.5);
+    glBegin(GL_QUADS);
+    for(i = 0, i < snake_length, i++)
+        float x = segs[i].x * seg_width;
+        float y = segs[i].y * seg_height;
+        //render it....
+        glVertex2f(x,y);
+        glVertex2f(x+seg_width,y);
+        glVertex2f(x+seg_width,y+seg_height);
+        glVertex2f(x,y+seg_height);
+    end
+    glEnd();
+end
+
+proc renderFood:
+    float seg_width = (float)width / constexprf(SCREEN_WIDTH);
+    float seg_height = (float)height / constexprf(SCREEN_HEIGHT);
+    
+    //we render the food the same way....
+    glBegin(GL_QUADS);
+        float x;
+        
+        x = food.x * seg_width;
+        float y;
+        y = food.y * seg_height;
+        //render it....
+        glColor3f(1,0.5,0.5);
+        glVertex2f(x,y);
+        glVertex2f(x+seg_width,y);
+        glVertex2f(x+seg_width,y+seg_height);
+        glVertex2f(x,y+seg_height);
+    glEnd();
+end
+
+proc checkEatFood:
+    //is the snake's head on top of the food? If not, we return...
+    if(segs[0].x != food.x || segs[0].y != food.y)
+        return 
+    end
+    playSample(eatSound,0);
+    //We are indeed growing...
+    randomizeFood();
+    snake_length++;
+    //did we win?
+    if(snake_length == constexpri(SNAKE_MAX_SEGS))
+        snake_length--;
+        //YOU WON!!!!!
+        mode = 1;
+        return
+    end
+    
+    //expand our snake...
+    segs[snake_length-1] := segs[snake_length-2];
+end
+
+proc checkCollide:
+    int x = segs[0].x;
+    int y = segs[0].y;
+    
+    i64 i
+    for(i = 1, i < snake_length, i++)
+        if(segs[i].x != x)
+            continue 
+        end
+        if(segs[i].y != y)
+            continue 
+        end
+        //we have a collision! The hungry snake will eat itself!
+        mode = 2;
+        return;
+    end
+
+end
+
+fn appInit:
+    openWindow(
+        "Joy!",
+        1280,
+        720
+    );
+    setSwapInterval(1); //enable Vsync
+    ourFont = loadFont(
+        "fonts/jupiteroid/Bold.ttf", 
+        128
+    );
+    eatSound = loadSample(
+        "soundfx/Suction Hit 1 Zube Tube.wav"
+    );
+    music = loadMusic("music/Study and Relax.mp3");
+    
+    srand(unixtime);
+    randomizeFood();
+    segs[0].x = 10;
+    segs[0].y = 10;
+    segs[1].x = 9; //slightly behind....
+    segs[1].y = 10;
+end
+
+
+int stall = 0; //we don't want the game to update every tick...
+int stored_direction_change = 0;
+//this is used to update the snake's direction using data from a key press...
+fn updateSnakeDir:
+    if(!stored_direction_change) 
+        return 
+    end
+    //we have an update!
+    
+    if(stored_direction_change == DIR_UP && direction != DIR_DOWN)
+        direction = stored_direction_change
+    elif(stored_direction_change == DIR_DOWN && direction != DIR_UP)
+        direction = stored_direction_change
+    elif(stored_direction_change == DIR_LEFT && direction != DIR_RIGHT)
+        direction = stored_direction_change
+    elif(stored_direction_change == DIR_RIGHT && direction != DIR_LEFT)
+        direction = stored_direction_change
+    end
+    stored_direction_change = 0;
+end
+
+
+fn appUpdate:
+    clearScreen(0.1,0.1,0.3);
+    //we render snake as UI elements....
+    beginUI();
+        //render hello world!!!
+        //glColor3f(0.8,0.8,1);
+        //renderText("Hello World!\nEnjoying the view?", ourFont, 100, 128,128);
+        if(mode == -1)
+        
+            glColor3f(0.8,0.8,1);
+            renderText("Press any key", ourFont, 100, 128,128);
+        elif(mode == 0)
+            if(stall > 0)
+                stall--;
+            else
+                stall = 5
+            end
+            //advance the game
+            //playing the game...
+            if(stall == 0)
+                updateSnakeDir();
+                advanceSnake();
+                //check if we ate the food...
+                checkEatFood();
+                checkCollide();
+            end
+            //render the food...
+            renderFood();
+            //render the snake...
+            renderSnake();
+            
+        elif(mode == 1)
+            //win
+            glColor3f(0.8,0.8,1);
+            renderText("You Won!", ourFont, 100, 128,128);
+            glDisable(GL_BLEND);
+            //render the food...
+            renderFood();
+            //render the snake...
+            renderSnake();
+        elif(mode == 2)
+            //lose
+            glColor3f(0.8,0.8,1);
+            renderText("You Lost!", ourFont, 100, 128,128);
+            glDisable(GL_BLEND);
+                //render the food...
+            renderFood();
+            //render the snake...
+            renderSnake();
+        end
+
+    endUI();
+
+    swapDisplay();
+end
+
+fn appClose:
+    haltMusic();
+    freeMusic(music);
+    freeSample(eatSound);
+    free(ourFont);
+    closeWindow();
+end
+
+fn onClick(int btn, int state):
+
+end
+
+fn onTextInput(char* text):
+
+end
+
+fn onTextEdit(char* text, int start, int length):
+
+end
+
+fn onKey(int kc, char state):
+    //escape key is universal quit...
+    if(state == 0 && kc == KEY_ESCAPE)
+        appClose();
+        sys_exit(0);
+    end
+    //depending on mode...
+    if(mode == -1 && state == 0)
+        mode = 0;
+        playMusic(music, -1, 500);
+    elif(mode == 0 && state == 1)
+        if(kc == KEY_UP)
+            stored_direction_change = DIR_UP;
+        elif(kc == KEY_LEFT)
+            stored_direction_change = DIR_LEFT;
+        elif(kc == KEY_RIGHT)
+            stored_direction_change = DIR_RIGHT;
+        elif(kc == KEY_DOWN)
+            stored_direction_change = DIR_DOWN;
+        end
+    end
+end
+
+fn onKeyRepeat(int kc, char state):
+    //do nothing...
+end
+
+
+fn onResize(int w, int h):
+    glViewport(0,0,w,h);
+end
+
+fn onScroll(int x, int y):
+    //not interested...
+end

@@ -1,0 +1,273 @@
+#include "funbas.hbas"
+    
+byte* ourFont = 0; //the variable used to store (a pointer to) our font!
+i64[2] numbers; //the numbers for the current calculation. 64 bit signed integers.
+uint n_numbers_entered = 0; //the number of numbers entered.
+byte[257] cur_number_entry; //the text buffer for holding the current number entry.
+byte number_entry_counter = 0; //Digits in current number typed.
+int errflag =0; //if we divide by zero, this will be set.
+
+fn appInit():
+    openWindow(
+        "Joy!",
+        1280,
+        720
+    );
+    setSwapInterval(1); //enable Vsync
+    //load our font! (Must be AFTER openWindow)
+    ourFont = loadFont(
+        "fonts/jupiteroid/Bold.ttf", 
+        64
+    );
+    memclear(cur_number_entry,257);
+end
+
+
+
+
+fn appUpdate():
+    char[50] pbuf //print buffer- used for printing numbers.
+    clearScreen(0.1,0.1,0.3); //color to clear the screen to...
+    //begin 2D rendering...
+    beginUI();
+        //color for text...
+        glColor3f(0.8,0.8,1);
+        //greeting message. \n means "newline"
+        renderText("Welcome to Calculotron!\nUse the numberpad\nIf you don't have one\nuse the number keys\nand A(+)/S(-)/M(*)/D(/)\nC to clear.", ourFont, 612, 64,64);
+        
+        //if the first number has been entered, display it.
+        if(n_numbers_entered >= 1)
+            itoa(pbuf, numbers[0]);
+            renderText(pbuf, ourFont, 10, 128,64);
+        end
+        //if the second number has been entered, display it too.
+        if(n_numbers_entered >= 2)
+            itoa(pbuf, numbers[1]);
+            renderText(pbuf, ourFont, 10, 128+64,64);
+        end
+        //if there is something in the current entry field, display it as well.
+        if(number_entry_counter)
+            //renderText("Current Entry:", ourFont, 250, 330,64);
+            renderText(cur_number_entry, ourFont, 300, 450,64);
+        end
+        //if an error has occurred, report it to the user and tell them what to do...
+        if(errflag)
+            renderText("<ERROR> Divide by Zero!\nPress Enter or `c`\nto continue...", ourFont, 300, 450,64);
+        end
+    //end 2D rendering...
+    endUI();
+    //update the display...
+    swapDisplay();
+end
+
+fn appClose():
+    free(ourFont);
+    closeWindow;
+end
+
+fn onClick(int btn, int state):
+
+end
+
+fn onTextInput(char* text):
+
+end
+
+fn onTextEdit(char* text, int start, int length):
+
+end
+
+//function for finishing a number entry
+fn finishNumber:
+    //check for the special case that we typed just a minus sign...
+    //we want to make it "-1"
+    if(number_entry_counter == 1 && cur_number_entry[0] == '-')
+        cur_number_entry[number_entry_counter++] = '1';
+    end
+    //if we haven't typed anything, and we haven't entered both numbers,
+    //we want to make the number zero.
+    if(number_entry_counter == 0 && n_numbers_entered < 2)
+        numbers[n_numbers_entered++] = 0;
+    elif(n_numbers_entered < 2)
+        //if we have entered fewer than 2 numbers, add the number
+        //to the list of numbers.
+        numbers[n_numbers_entered++] = atoi(cur_number_entry);
+    else
+        //If both numbers have been entered, we want to replace the current
+        //number with the number being typed.
+        numbers[1] = atoi(cur_number_entry);
+    end
+    //reset the number entry...
+    memclear(cur_number_entry, 257);
+    number_entry_counter = 0;
+end
+
+fn onKey(int kc, char state):
+    //escape is our quit key...
+    if(state == 0 && kc == KEY_ESCAPE)
+        appClose();
+        sys_exit(0);
+    end
+    //This is a bit complicated...
+    if(
+        state == 0 &&  //a key has been released AND....
+        (
+                (errflag && //a divide by zero has happened AND...
+                    ( //enter/backspace was entered...
+                        kc == KEY_RETURN || 
+                        kc == KEY_KP_ENTER || 
+                        kc == KEY_BACKSPACE
+                    )
+                )
+                || //OR
+                kc == KEY_C //the C (clear) key was pressed....
+        )
+    )
+        errflag = 0; //set error flag to zero.
+        memclear(cur_number_entry, 257); //clear the text entry buffer...
+        number_entry_counter = 0; //set the number entry position to zero.
+        n_numbers_entered = 0; //reset the number of numbers entered.
+    end
+    //if a key has been released and we are not in the error state...
+    if(state == 0 && !errflag)
+        //if it's a number key....
+        if(kc == KEY_0 || kc == KEY_KP_0)
+            cur_number_entry[number_entry_counter++] = '0';
+        elif(kc == KEY_1 || kc == KEY_KP_1)
+            cur_number_entry[number_entry_counter++] = '1';
+        elif(kc == KEY_2 || kc == KEY_KP_2)
+            cur_number_entry[number_entry_counter++] = '2';
+        elif(kc == KEY_3 || kc == KEY_KP_3)
+            cur_number_entry[number_entry_counter++] = '3';
+        elif(kc == KEY_4 || kc == KEY_KP_4)
+            cur_number_entry[number_entry_counter++] = '4';
+        elif(kc == KEY_5 || kc == KEY_KP_5)
+            cur_number_entry[number_entry_counter++] = '5';
+        elif(kc == KEY_6 || kc == KEY_KP_6)
+            cur_number_entry[number_entry_counter++] = '6';
+        elif(kc == KEY_7 || kc == KEY_KP_7)
+            cur_number_entry[number_entry_counter++] = '7';
+        elif(kc == KEY_8 || kc == KEY_KP_8)
+            cur_number_entry[number_entry_counter++] = '8';
+        elif(kc == KEY_9 || kc == KEY_KP_9)
+            cur_number_entry[number_entry_counter++] = '9';
+        //if we are entering the first character and we press `-` then the number is negative...
+        elif(
+            (//a minus key was pressed
+                kc == KEY_MINUS ||
+                kc == KEY_KP_MINUS
+            ) && //AND
+            number_entry_counter == 0 && //the entry buffer is empty
+            (n_numbers_entered < 2) //and we have entered fewer than two numbers...
+        )
+            cur_number_entry[number_entry_counter++] = '-'; //the new number starts with minus.
+        //If backspace has been released and we have characters in the entry buffer,
+        //delete a character from that buffer.
+        elif(kc == KEY_BACKSPACE && number_entry_counter)
+            cur_number_entry[--number_entry_counter] = 0;
+        //BUT if the text entry buffer is empty, then we delete a number instead.
+        elif(kc == KEY_BACKSPACE && n_numbers_entered)
+            n_numbers_entered--;
+        //if a number entry is in progress and the user presses enter
+        //we finish the current number being entered.
+        elif((kc == KEY_KP_ENTER || kc == KEY_RETURN) && number_entry_counter)
+            finishNumber();
+        //but if we are not entering a number, and enter is pressed, and the number
+        //of numbers entered is zero, we should reset the state of the calculator.
+        elif((kc == KEY_KP_ENTER || kc == KEY_RETURN) && n_numbers_entered == 0)
+            memclear(cur_number_entry, 257);
+            number_entry_counter = 0;
+            n_numbers_entered = 0;
+            //we already know errflag is zero, so we dont need to reset it.
+        //If a plus key has been pressed (the equals key is also a plus key,
+        //and a stands for add)
+        elif((kc == KEY_EQUALS || kc == KEY_KP_PLUS || kc == KEY_A))
+            //If the user has not typed in any numbers, we want the add/sub/mul/div keys
+            //to be aliases for "enter".
+            if(n_numbers_entered == 0)
+                finishNumber
+                return
+            //if the user has entered at least one number, but fewer than two,
+            //we attempt to finish the current number....
+            elif(n_numbers_entered < 2)
+                //if there is nothing in the number entry field, we do NOT complete
+                //an operation...
+                if(number_entry_counter == 0)
+                    return
+                end
+                //finish the number in the entry field...
+                finishNumber();
+            end
+            //perform addition...
+            numbers[0] = numbers[0] + numbers[1];
+            n_numbers_entered = 1;
+        //subtraction!
+        elif((kc == KEY_MINUS || kc == KEY_KP_MINUS || kc == KEY_S))
+            //same story as add
+            if(n_numbers_entered == 0)
+                finishNumber
+                return
+            elif(n_numbers_entered < 2)
+                if(number_entry_counter == 0)
+                    return
+                end
+                finishNumber();
+            end
+            numbers[0] = numbers[0] - numbers[1];        
+            n_numbers_entered = 1;
+        //multiplication
+        elif((kc == KEY_KP_STAR || kc == KEY_M))
+            //same story as add
+            if(n_numbers_entered == 0)
+                finishNumber
+                return
+            elif(n_numbers_entered < 2)
+                if(number_entry_counter == 0)
+                    return
+                end
+                finishNumber();
+            end
+            numbers[0] = numbers[0] * numbers[1];
+            n_numbers_entered = 1;
+        //Division!
+        elif((kc == KEY_KP_SLASH || kc == KEY_D || kc == KEY_SLASH))
+            //same story as add, but...
+            if(n_numbers_entered == 0)
+                finishNumber
+                return
+            elif(n_numbers_entered < 2)
+                //this prevents erroneous presses of `/` with
+                //only one number entered causing a divide by zero error.
+                if(number_entry_counter == 0)
+                    return
+                end
+                finishNumber();
+            end
+            //don't divide by zero!
+            if(numbers[1] != 0)
+                numbers[0] = numbers[0] / numbers[1];
+                n_numbers_entered = 1;
+            else
+                //error! division by zero!
+                //report it to the user.
+                numbers[0] = 0;
+                //numbers[1] is zero, so we don't have to reset it...
+                errflag = 1;
+                n_numbers_entered = 0;
+            end
+        end //massive elif chain...
+    end //state == 0 && !errflag
+end
+
+fn onKeyRepeat(int kc, char state):
+
+end
+
+
+fn onResize(int w, int h):
+    glViewport(0,0,width,height);
+end
+
+fn onScroll(int x, int y):
+
+end

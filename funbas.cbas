@@ -1,0 +1,181 @@
+
+
+#include "funbas.hbas"
+
+@wksht prnt [
+    [
+        @pprint [println utoa ARG1]
+    ][
+        ARG1
+    ]
+]
+
+byte* fid;
+byte* fidmono;
+byte* music;
+float scrollfactor = 1;
+int isUsingJoyStick = 0;
+byte* gcHandle = 0;
+byte is_text_editing = 0;
+fn appInit():
+    openWindow(
+        "Joy!",
+        1280,
+        720
+    );
+    setSwapInterval(1); //enable Vsync
+    fid = loadFont(
+        "fonts/jupiteroid/Bold.ttf", 
+        48
+    );
+    fidmono = loadFont(
+        "fonts/jupiteroid/Italic.ttf", 
+        64
+    );
+    music = loadMusic("music/3 am West End.mp3");
+    playMusic(music, -1, 300);
+    @prnt[
+        /   "GL_TEXTURE_2D is..."
+        /int    (GL_TEXTURE_2D)
+        /   "numJoySticks:"
+        /int (numJoysticks)
+    ]
+    if(numJoysticks)
+        isUsingJoyStick = 1;
+        gcHandle = openGameController(0);
+    end
+    
+end
+
+double t = 0.0;
+double w = 0.0;
+char[512] statusbuf;
+#define TYPED_TEXT_MAX 2047
+char[TYPED_TEXT_MAX+1] typed_text;
+uint typed_characters = 0;
+
+fn appUpdate():
+    clearScreen(0.1,0.1,0.3);
+    beginUI();
+        glMatrixMode(GL_MODELVIEW);
+        glDisable(GL_BLEND);
+        glPushMatrix();
+            glTranslatef(width/2.0, height/2.0, 0);
+            glRotatef(t*5.0, 0, 0, 1);
+            glScalef(scrollfactor, scrollfactor, 0);
+            glBegin(GL_TRIANGLES);
+                glColor3f(1,0,0); glVertex2f(-100,-100);
+                glColor3f(0,1,0); glVertex2f(100,-100);
+                glColor3f(0,0,1); glVertex2f(0,100);
+            glEnd();
+        glPopMatrix();
+        
+        
+        glPushMatrix();
+            glTranslatef(width/2.0, height/2.0,0);
+            glRotatef(103*sinf(0.7*t), 0,0,1);
+            glScalef(scrollfactor, scrollfactor, 0);
+            glColor3f(0.8,0.8,1);
+            renderText("Hello World!", fid, -600, -400,48);
+            renderTextMono("You seem tired.", fidmono, -600, -50,50,64);
+            renderText("Let's relax a bit...", fid, -600,100,48);
+        glPopMatrix();
+        //render status...
+        if(isUsingJoyStick && (gcHandle != 0))
+            char* l = statusbuf;
+            char* msg = "Reading your left thumbstick:\n"
+            u64 len = strlen(msg);
+            
+            mcpy(l, msg, len+1);
+            l = l + len;
+            itoa(l, gameControllerGetAxis(gcHandle,0));
+            l = l + strlen(l);
+            //a space
+            msg = "\n";
+            len = strlen(msg);
+            mcpy(l, msg, len+1);
+            l = l + len;
+            itoa(l, gameControllerGetAxis(gcHandle,1));
+            l = l + strlen(l);
+            
+            msg = "\nDoes that sound right?";
+            len = strlen(msg);
+            mcpy(l, msg, len+1);
+            l = l + len;
+            renderText(statusbuf, fid, 0,48,48);
+        end
+        if(is_text_editing)
+            renderText(typed_text,fid, 0,200,48);
+        end
+        
+        
+    endUI();
+    
+    t = t + 1.0/60.0;
+    w = w + 1.0/60.0;
+    swapDisplay();
+end
+
+fn appClose():
+    free(fid);
+    free(fidmono);
+    closeWindow;
+end
+
+fn onClick(int btn, int state):
+    @prnt[
+        /   "Got a click of:"
+        /int(btn)
+        /int(state)
+        /   "@"
+        /int(mousex)
+        /int(mousey)
+    ]
+end
+
+fn onTextInput(char* text):
+    u64 l = strlen(text);
+    mcpy(typed_text+typed_characters, text, l+1);
+    typed_characters = typed_characters + l;
+end
+
+fn onTextEdit(char* text, int start, int length):
+
+end
+
+fn onKey(int kc, char state):
+    if(state == 1 && (kc == KEY_Q || kc == KEY_ESCAPE) && !is_text_editing)
+        sys_exit(0);
+    elif(state == 0 && kc == KEY_E && !is_text_editing)
+        is_text_editing = 1;
+        typed_characters = 0;
+        memclear(typed_text, TYPED_TEXT_MAX+1);
+    elif(state == 0 && kc == KEY_ESCAPE && is_text_editing)
+        is_text_editing = 0;
+        typed_characters = 0;
+    elif(is_text_editing && kc == KEY_BACKSPACE && typed_characters && state == 1)
+        typed_text[typed_characters-1] = 0;
+        typed_characters--;
+    end
+end
+
+fn onKeyRepeat(int kc, char state):
+    if(is_text_editing && kc == KEY_BACKSPACE && typed_characters && state == 1)
+        typed_text[typed_characters-1] = 0;
+        typed_characters--;
+    end
+end
+
+
+fn onResize(int w, int h):
+    glViewport(0,0,width,height);
+end
+
+fn onScroll(int x, int y):
+    scrollfactor = scrollfactor + (float)y/50.0
+    if(scrollfactor <= 0.1)
+        scrollfactor = 0.1; 
+    elseif(scrollfactor > 10.0)
+        scrollfactor = 10;
+    end
+end

@@ -1,0 +1,100 @@
+
+
+#include "funbas.hbas"
+
+
+byte* ourFont = 0;
+byte* sound1= 0;
+byte* sound2= 0;
+byte* sound3= 0;
+byte* music1 = 0;
+byte* music2 = 0;
+
+fn appInit:
+    openWindow(
+        "Joy!",
+        1280,
+        720
+    );
+    setSwapInterval(1); //enable Vsync
+    ourFont = loadFont(
+        "fonts/jupiteroid/Bold.ttf", 
+        50
+    );
+    sound1 = loadSample("soundfx/Soft Blurp Hit 1 Zube Tube.wav");
+    sound2 = loadSample("soundfx/Wibble Wobble Spring 1 Zube Tube.wav");
+    sound3 = loadSample("soundfx/Futuristic Gun Fire Sound 7 Zube Tube.wav");
+    music1 = loadMusic("music/Study and Relax.mp3");
+    music2 = loadMusic("music/3 am West End.mp3");
+
+end
+
+fn appUpdate:
+    clearScreen(0.1,0.1,0.3);
+    beginUI();
+        glColor3f(0.8,0.8,1);
+        renderText("Press W or E to choose music track, Q for silence.\nASD play sounds.", ourFont, 0, 50,50);
+
+
+    endUI();
+
+    swapDisplay();
+end
+
+fn appClose:
+    haltMusic();
+    freeMusic(music1);
+    freeMusic(music2);
+    freeSample(sound1);
+    freeSample(sound2);
+    freeSample(sound3);
+    closeWindow();
+end
+
+fn onClick(int btn, int state):
+
+end
+
+fn onTextInput(char* text):
+
+end
+
+fn onTextEdit(char* text, int start, int length):
+
+end
+
+fn onKey(int kc, char state):
+    //escape key is universal quit...
+    if(state == 0 && kc == KEY_ESCAPE)
+        appClose();
+        sys_exit(0);
+    end
+    if(state == 1 && kc == KEY_Q)
+        haltMusic();
+    elif(state == 1 && kc == KEY_W)
+        haltMusic();
+        playMusic(music1,-1,3000);
+    elif(state == 1 && kc == KEY_E)
+        haltMusic();
+        playMusic(music2,-1,3000);
+    elif(state == 1 && kc == KEY_A)
+        playSample(sound1,0);
+    elif(state == 1 && kc == KEY_S)
+        playSample(sound2,0);
+    elif(state == 1 && kc == KEY_D)
+        playSample(sound3,0);
+    end
+end
+
+fn onKeyRepeat(int kc, char state):
+    //do nothing...
+end
+
+
+fn onResize(int w, int h):
+    glViewport(0,0,w,h);
+end
+
+fn onScroll(int x, int y):
+    //not interested...
+end

@@ -1,0 +1,109 @@
+#include "funbas.hbas"
+
+    
+byte* ourFont = 0; //the variable used to store our font!
+
+
+        struct mystruct
+            int a
+        end
+        int ctr = 0;
+        method mystruct.ctor:
+            if(ctr == 0)
+                println("Call me \"Adam\"");
+            else
+                println("Construction...");
+            end
+            this.a = ctr++
+        end
+        method mystruct.dtor:
+            if(this.a == 0)
+                println("Destroying Adam...");
+            else
+                println("Destruction...");
+            end
+            ctr--
+        end
+    
+        codegen int myConstant = 3;
+
+
+fn myFunction(int c)->int:
+    mystruct f
+    mystruct g
+    mystruct h
+    int q = h.a;
+    return q + c;
+end
+
+fn appInit():
+    openWindow(
+        "Joy!",
+        1280,
+        720
+    );
+    setSwapInterval(1); //enable Vsync
+    //load our font! (Must be AFTER openWindow)
+    ourFont = loadFont(
+        "fonts/jupiteroid/Bold.ttf", 
+        128
+    );
+    myFunction(3);
+    int getit = constexpri(myConstant);
+    int getit2 = myConstant;
+    ;
+end
+
+fn appUpdate():
+    clearScreen(0.1,0.1,0.3);
+    beginUI();
+        glColor3f(0.8,0.8,1);
+        renderText(
+            //this is our text! the `\n` means `newline`.
+            "Hello World!\nEnjoying the view?", 
+            ourFont,
+            100, //this is the X coordinate of the bottom left corner of the first character.
+                 //we choose 100 pixels from the left edge.
+            128, //this is the Y coordinate. We choose 128 pixels from the top of the screen.
+            128  //this is the amount of "vertical spacing" that a newline introduces.
+        );
+    endUI();
+    swapDisplay();
+end
+
+fn appClose():
+    free(ourFont);
+    closeWindow;
+end
+
+fn onClick(int btn, int state):
+
+end
+
+fn onTextInput(char* text):
+
+end
+
+fn onTextEdit(char* text, int start, int length):
+
+end
+
+fn onKey(int kc, char state):
+    if(state == 0 && kc == KEY_ESCAPE)
+        appClose();
+        sys_exit(0);
+    end
+end
+
+fn onKeyRepeat(int kc, char state):
+
+end
+
+
+fn onResize(int w, int h):
+    glViewport(0,0,width,height);
+end
+
+fn onScroll(int x, int y):
+
+end

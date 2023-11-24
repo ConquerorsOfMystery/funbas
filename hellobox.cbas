@@ -1,0 +1,165 @@
+#include "funbas.hbas"
+
+byte* fid;
+byte* fidmono;
+byte* music;
+double scrollfactor = 1;
+
+fn appInit():
+    openWindow(
+        "Joy!",
+        1280,
+        720
+    );
+    setSwapInterval(1); //enable Vsync
+    fid = loadFont(
+        "fonts/jupiteroid/Bold.ttf", 
+        48
+    );
+    fidmono = loadFont(
+        "fonts/jupiteroid/Italic.ttf", 
+        64
+    );
+    music = loadMusic("music/3 am West End.mp3");
+    playMusic(music, -1, 300);
+end
+
+double t = 0.0;
+double w = 0.0;
+
+fn appUpdate():
+    clearScreen(0.1,0.1,0.3);
+    glDisable(GL_BLEND);
+    glDisable(GL_CULL_FACE);
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+        glPerspective(90,(double)width/(double)height, 0.1, 100);
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+
+        //glScalef(scrollfactor, scrollfactor, 1);
+        /*
+        glBegin(GL_TRIANGLES);
+            glColor3f(1,0,0); glVertex3f(-1.00,-1.00,0);
+            glColor3f(0,1,0); glVertex3f(1.00,-1.00,0);
+            glColor3f(0,0,1); glVertex3f(0,1.00,0);
+        glEnd();
+        */
+        //use lighting to debug our cube...
+        glEnable(GL_LIGHTING);
+        glEnable(GL_LIGHT0);
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
+        glShadeModel(GL_FLAT);
+        glEnable(GL_COLOR_MATERIAL);
+        glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
+        if(1)
+            float[6] pos
+            pos[0] = 2;
+            pos[1] = 3;
+            pos[2] = -3;
+            pos[3] = 1;
+            glLightfv(
+                GL_LIGHT0,
+                GL_POSITION,
+                pos
+            );
+            pos[0] = 1;
+            pos[1] = 1;
+            pos[2] = 1;
+            glLightfv(
+                GL_LIGHT0,
+                GL_DIFFUSE,
+                pos
+            );
+            glLightfv(
+                GL_LIGHT0,
+                GL_SPECULAR,
+                pos
+            );
+            pos[0] = 0.1;
+            pos[1] = 0.1;
+            pos[2] = 0.1;
+            glLightfv(
+                GL_LIGHT0,
+                GL_AMBIENT,
+                pos
+            );
+        end
+        glTranslatef(0, 0, -5);
+        glRotatef(t*5.0, 0, 0, 1);
+        glRotatef(t*7.3 + 1.3674e2, 0, 1, 0);
+        glColor3f(1,0.1,0.1);
+        glBegin(GL_QUADS);
+            drawBox(1,1,1);
+        glEnd();
+        glDisable(GL_LIGHTING);
+        
+    glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    beginUI();
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+            glTranslatef(width/2.0, height/2.0,0);
+            glRotatef(103*sinf(0.7*t), 0,0,1);
+            glScalef(scrollfactor, scrollfactor, 0);
+            glColor3f(0.8,0.8,1);
+            renderText("Hello World!", fid, -600, -400,48);
+            renderTextMono("Enjoying the View?", fidmono, 
+                -600, -50, //coordinates
+                50, //horizontal character spacing
+                64 //vertical spacing for newlines...
+            );
+            renderText("Let's relax a bit...", fid, -600,100,48);
+        glPopMatrix();
+    endUI();
+
+    
+    t = t + 1.0/60.0;
+    w = w + 1.0/60.0;
+    swapDisplay();
+end
+
+fn appClose():
+    free(fid);
+    free(fidmono);
+    freeMusic(music);
+    closeWindow;
+end
+
+fn onClick(int btn, int state):
+
+end
+
+fn onTextInput(char* text):
+
+end
+
+fn onTextEdit(char* text, int start, int length):
+
+end
+
+fn onKey(int kc, char state):
+    if(state == 0 && (kc == KEY_Q || kc == KEY_ESCAPE))
+        sys_exit(0);
+    end
+end
+
+fn onKeyRepeat(int kc, char state):
+
+end
+
+
+fn onResize(int w, int h):
+    glViewport(0,0,width,height);
+end
+
+fn onScroll(int x, int y):
+    scrollfactor = scrollfactor + (f64)y/50.0
+    if(scrollfactor <= 0.1)
+        scrollfactor = 0.1; 
+    elseif(scrollfactor > 10.0)
+        scrollfactor = 10;
+    end
+end

@@ -1,0 +1,58 @@
+
+
+#include "funbas.hbas"
+
+
+
+fn appInit():
+    openWindow(
+        "Joy!",
+        1280,
+        720
+    );
+    setSwapInterval(1); //enable Vsync
+end
+
+
+fn appUpdate():
+    clearScreen(0.1,0.1,0.3);
+
+    swapDisplay();
+end
+
+fn appClose():
+
+    closeWindow;
+end
+
+fn onClick(int btn, int state):
+
+end
+
+fn onTextInput(char* text):
+
+end
+
+fn onTextEdit(char* text, int start, int length):
+
+end
+
+fn onKey(int kc, char state):
+    if(state == 0 && kc == KEY_ESCAPE)
+        appClose();
+        sys_exit(0);
+    end
+end
+
+fn onKeyRepeat(int kc, char state):
+
+end
+
+
+fn onResize(int w, int h):
+    glViewport(0,0,width,height);
+end
+
+fn onScroll(int x, int y):
+
+end

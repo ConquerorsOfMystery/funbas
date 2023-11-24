@@ -1,0 +1,112 @@
+#include "funbas.hbas"
+
+byte* fid;
+byte* fidmono;
+byte* music;
+double scrollfactor = 1;
+
+fn appInit():
+    openWindow(
+        "Joy!",
+        1280,
+        720
+    );
+    setSwapInterval(1); //enable Vsync
+    fid = loadFont(
+        "fonts/jupiteroid/Bold.ttf", 
+        48
+    );
+    fidmono = loadFont(
+        "fonts/jupiteroid/Italic.ttf", 
+        64
+    );
+    music = loadMusic("music/3 am West End.mp3");
+    playMusic(music, -1, 300);
+end
+
+double t = 0.0;
+double w = 0.0;
+
+fn appUpdate():
+    clearScreen(0.1,0.1,0.3);
+    glMatrixMode(GL_MODELVIEW);
+    glDisable(GL_BLEND);
+    glDisable(GL_CULL_FACE);
+    glPushMatrix();
+        glPerspective(90,(double)width/(double)height, 0.1, 100);
+        glTranslatef(0, 0, -5);
+        glRotatef(t*5.0, 0, 0, 1);
+        glRotatef(t*7.3, 0, 1, 0);
+        glScalef(scrollfactor, scrollfactor, 1);
+        glBegin(GL_TRIANGLES);
+            glColor3f(1,0,0); glVertex3f(-1.00,-1.00,0);
+            glColor3f(0,1,0); glVertex3f(1.00,-1.00,0);
+            glColor3f(0,0,1); glVertex3f(0,1.00,0);
+        glEnd();
+    glPopMatrix();
+    
+    beginUI();
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+            glTranslatef(width/2.0, height/2.0,0);
+            glRotatef(103*sinf(0.7*t), 0,0,1);
+            glScalef(scrollfactor, scrollfactor, 0);
+            glColor3f(0.8,0.8,1);
+            renderText("Hello World!", fid, -600, -400,48);
+            renderTextMono("Enjoying the View?", fidmono, 
+                -600, -50, //coordinates
+                50, //horizontal character spacing
+                64 //vertical spacing for newlines...
+            );
+            renderText("Let's relax a bit...", fid, -600,100,48);
+        glPopMatrix();
+    endUI();
+
+    
+    t = t + 1.0/60.0;
+    w = w + 1.0/60.0;
+    swapDisplay();
+end
+
+fn appClose():
+    free(fid);
+    free(fidmono);
+    freeMusic(music);
+    closeWindow;
+end
+
+fn onClick(int btn, int state):
+
+end
+
+fn onTextInput(char* text):
+
+end
+
+fn onTextEdit(char* text, int start, int length):
+
+end
+
+fn onKey(int kc, char state):
+    if(state == 0 && (kc == KEY_Q || kc == KEY_ESCAPE))
+        sys_exit(0);
+    end
+end
+
+fn onKeyRepeat(int kc, char state):
+
+end
+
+
+fn onResize(int w, int h):
+    glViewport(0,0,width,height);
+end
+
+fn onScroll(int x, int y):
+    scrollfactor = scrollfactor + (f64)y/50.0
+    if(scrollfactor <= 0.1)
+        scrollfactor = 0.1; 
+    elseif(scrollfactor > 10.0)
+        scrollfactor = 10;
+    end
+end
