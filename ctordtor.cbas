@@ -25,7 +25,7 @@ byte* ourFont = 0; //the variable used to store our font!
             ctr--
         end
     
-        codegen int myConstant = 3;
+codegen int myConstant = 3;
 
 
 fn myFunction(int c)->int:
@@ -50,8 +50,6 @@ fn appInit():
     );
     myFunction(3);
     int getit = constexpri(myConstant);
-    int getit2 = myConstant;
-    ;
 end
 
 fn appUpdate():
