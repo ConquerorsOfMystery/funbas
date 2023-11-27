@@ -6,8 +6,8 @@
 
 
 default:
-	cbas funbas.cbas
-	cc -O3 auto_out.c -o fun -lm -lSDL2 -lGL -lSDL2_mixer -fwrapv -Wall -Wno-unused
+	cbas funbas.cbas foobar.c
+	cc -O3 foobar.c -o fun -lm -lSDL2 -lGL -lSDL2_mixer -fwrapv -Wall -Wno-unused
 
 win:
 	cbas funbas.cbas
@@ -33,7 +33,7 @@ copy:
 
 
 clean:
-	rm -f *.out *.exe fun auto_out.c helloworld snake
+	rm -f *.out *.exe fun auto_out.c foobar.c helloworld snake
 	
 push: clean
 	git add .
