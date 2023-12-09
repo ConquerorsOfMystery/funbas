@@ -268,7 +268,197 @@ fn inline setTextInputRect(int x, int y, int w, int h):
     "
 end
 /*
+    Mini math library
+*/
+struct vec3
+    float[3] d
+end
+struct vec4
+    union
+    vec3 v3
+    float[4] d
+end
+struct mat4
+    union
+    vec4[4] cols
+    float[16] d
+end
+method inline vec3.len->float:
+    float a
+    //V * 1/sqrt(V.x*V.x + V.y*V.y + V.z * V.z)
+    a = this.d[0] * this.d[0];
+    a = a + this.d[1] * this.d[1];
+    a = a + this.d[2] * this.d[2];
+    a = sqrtf(a);
+    return a
+end
+method inline vec3.norm:
+    float a = this.len();
+    this.d[0] = this.d[0] / a;
+    this.d[1] = this.d[1] / a;
+    this.d[2] = this.d[2] / a;
+end
+method inline vec3.scale(float f):
+    this.d[0] = this.d[0] * f;
+    this.d[1] = this.d[1] * f;
+    this.d[2] = this.d[2] * f;
+end
+method inline vec4.norm:
+    float a
+    a = this.d[0] * this.d[0];
+    a = a + this.d[1] * this.d[1];
+    a = a + this.d[2] * this.d[2];
+    a = a + this.d[3] * this.d[3];
+    a = sqrtf(a);
+    this.d[0] = this.d[0] / a;
+    this.d[1] = this.d[1] / a;
+    this.d[2] = this.d[2] / a;
+    this.d[3] = this.d[3] / a;
+end
+method inline mat4.mkscale(vec4 s):
+    int i
+	for(i = 1; i < 16; i++)
+		this.d[i]= 0
+	end
+	this.d[0*4 + 0] = s.d[0];
+	this.d[1*4 + 1] = s.d[1];
+	this.d[2*4 + 2] = s.d[2];
+	this.d[3*4 + 3] = s.d[3];
+end
+method inline mat4.inv->byte:
+    float det
+    mat4 inv
+    mat4* m = this;
+    inv.d[0] = m.d[5]  * m.d[10] * m.d[15] - 
+             m.d[5]  * m.d[11] * m.d[14] - 
+             m.d[9]  * m.d[6]  * m.d[15] + 
+             m.d[9]  * m.d[7]  * m.d[14] +
+             m.d[13] * m.d[6]  * m.d[11] - 
+             m.d[13] * m.d[7]  * m.d[10];
+
+    inv.d[4] = -m.d[4]  * m.d[10] * m.d[15] + 
+              m.d[4]  * m.d[11] * m.d[14] + 
+              m.d[8]  * m.d[6]  * m.d[15] - 
+              m.d[8]  * m.d[7]  * m.d[14] - 
+              m.d[12] * m.d[6]  * m.d[11] + 
+              m.d[12] * m.d[7]  * m.d[10];
+
+    inv.d[8] = m.d[4]  * m.d[9] * m.d[15] - 
+             m.d[4]  * m.d[11] * m.d[13] - 
+             m.d[8]  * m.d[5] * m.d[15] + 
+             m.d[8]  * m.d[7] * m.d[13] + 
+             m.d[12] * m.d[5] * m.d[11] - 
+             m.d[12] * m.d[7] * m.d[9];
+
+    inv.d[12] = -m.d[4]  * m.d[9] * m.d[14] + 
+               m.d[4]  * m.d[10] * m.d[13] +
+               m.d[8]  * m.d[5] * m.d[14] - 
+               m.d[8]  * m.d[6] * m.d[13] - 
+               m.d[12] * m.d[5] * m.d[10] + 
+               m.d[12] * m.d[6] * m.d[9];
+
+    inv.d[1] = -m.d[1]  * m.d[10] * m.d[15] + 
+              m.d[1]  * m.d[11] * m.d[14] + 
+              m.d[9]  * m.d[2] * m.d[15] - 
+              m.d[9]  * m.d[3] * m.d[14] - 
+              m.d[13] * m.d[2] * m.d[11] + 
+              m.d[13] * m.d[3] * m.d[10];
+
+    inv.d[5] = m.d[0]  * m.d[10] * m.d[15] - 
+             m.d[0]  * m.d[11] * m.d[14] - 
+             m.d[8]  * m.d[2] * m.d[15] + 
+             m.d[8]  * m.d[3] * m.d[14] + 
+             m.d[12] * m.d[2] * m.d[11] - 
+             m.d[12] * m.d[3] * m.d[10];
+
+    inv.d[9] = -m.d[0]  * m.d[9] * m.d[15] + 
+              m.d[0]  * m.d[11] * m.d[13] + 
+              m.d[8]  * m.d[1] * m.d[15] - 
+              m.d[8]  * m.d[3] * m.d[13] - 
+              m.d[12] * m.d[1] * m.d[11] + 
+              m.d[12] * m.d[3] * m.d[9];
+
+    inv.d[13] = m.d[0]  * m.d[9] * m.d[14] - 
+              m.d[0]  * m.d[10] * m.d[13] - 
+              m.d[8]  * m.d[1] * m.d[14] + 
+              m.d[8]  * m.d[2] * m.d[13] + 
+              m.d[12] * m.d[1] * m.d[10] - 
+              m.d[12] * m.d[2] * m.d[9];
+
+    inv.d[2] = m.d[1]  * m.d[6] * m.d[15] - 
+             m.d[1]  * m.d[7] * m.d[14] - 
+             m.d[5]  * m.d[2] * m.d[15] + 
+             m.d[5]  * m.d[3] * m.d[14] + 
+             m.d[13] * m.d[2] * m.d[7] - 
+             m.d[13] * m.d[3] * m.d[6];
+
+    inv.d[6] = -m.d[0]  * m.d[6] * m.d[15] + 
+              m.d[0]  * m.d[7] * m.d[14] + 
+              m.d[4]  * m.d[2] * m.d[15] - 
+              m.d[4]  * m.d[3] * m.d[14] - 
+              m.d[12] * m.d[2] * m.d[7] + 
+              m.d[12] * m.d[3] * m.d[6];
+
+    inv.d[10] = m.d[0]  * m.d[5] * m.d[15] - 
+              m.d[0]  * m.d[7] * m.d[13] - 
+              m.d[4]  * m.d[1] * m.d[15] + 
+              m.d[4]  * m.d[3] * m.d[13] + 
+              m.d[12] * m.d[1] * m.d[7] - 
+              m.d[12] * m.d[3] * m.d[5];
+
+    inv.d[14] = -m.d[0]  * m.d[5] * m.d[14] + 
+               m.d[0]  * m.d[6] * m.d[13] + 
+               m.d[4]  * m.d[1] * m.d[14] - 
+               m.d[4]  * m.d[2] * m.d[13] - 
+               m.d[12] * m.d[1] * m.d[6] + 
+               m.d[12] * m.d[2] * m.d[5];
+
+    inv.d[3] = -m.d[1] * m.d[6] * m.d[11] + 
+              m.d[1] * m.d[7] * m.d[10] + 
+              m.d[5] * m.d[2] * m.d[11] - 
+              m.d[5] * m.d[3] * m.d[10] - 
+              m.d[9] * m.d[2] * m.d[7] + 
+              m.d[9] * m.d[3] * m.d[6];
+
+    inv.d[7] = m.d[0] * m.d[6] * m.d[11] - 
+             m.d[0] * m.d[7] * m.d[10] - 
+             m.d[4] * m.d[2] * m.d[11] + 
+             m.d[4] * m.d[3] * m.d[10] + 
+             m.d[8] * m.d[2] * m.d[7] - 
+             m.d[8] * m.d[3] * m.d[6];
+
+    inv.d[11] = -m.d[0] * m.d[5] * m.d[11] + 
+               m.d[0] * m.d[7] * m.d[9] + 
+               m.d[4] * m.d[1] * m.d[11] - 
+               m.d[4] * m.d[3] * m.d[9] - 
+               m.d[8] * m.d[1] * m.d[7] + 
+               m.d[8] * m.d[3] * m.d[5];
+
+    inv.d[15] = m.d[0] * m.d[5] * m.d[10] - 
+              m.d[0] * m.d[6] * m.d[9] - 
+              m.d[4] * m.d[1] * m.d[10] + 
+              m.d[4] * m.d[2] * m.d[9] + 
+              m.d[8] * m.d[1] * m.d[6] - 
+              m.d[8] * m.d[2] * m.d[5];
+
+    det = m.d[0] * inv.d[0] + m.d[1] * inv.d[4] + m.d[2] * inv.d[8] + m.d[3] * inv.d[12];
+    if (det == 0)
+        return 0
+    end
+    det = 1.0 / det;
+    int i
+    for (i = 0; i < 16; i++)
+        inv.d[i] = inv.d[i] * det;
+    end
+    this := inv
+    return 1
+end
+
+
+/*
     Render primitives.
+    
+    Box does texturing.
 */
 fn inline drawBox(float xdim, float ydim, float zdim):
     float x;
@@ -311,9 +501,156 @@ fn inline drawBox(float xdim, float ydim, float zdim):
         glTexCoord2f(1,0); glVertex3f(x,-y,-zdim);
         glTexCoord2f(0,0); glVertex3f(-x,-y,-zdim);
 end
+//sphere- no texturing.
+fn inline drawSphere(float r, uint lats, uint longs):
+    uint i
+    uint j
+    for(i = 0, i < lats+1, i++)
+        /*
+            |
+            |
+            |------*
+            |TRI  /^
+            |    / |
+            |   /  |
+            |  /   This is the point we want to find....
+            |-/
+            |/__________________
+        
+        */
+        double y1
+        double r1
+        double y2
+        double r2
+        y1 = cos((PI/(lats+1)) * i);
+        r1 = sin((PI/(lats+1)) * i);
+        
+        y2 = cos((PI/(lats+1)) * (i+1));
+        r2 = sin((PI/(lats+1)) * (i+1));
+        if(i == 0)
+            y1 = 1;
+            r1 = 0
+        elif(i == lats)
+            y2 = -1;
+            r2 = 0
+        end
+        for(j = 0, j < longs+1, j++)
+            /*
+                0  1
+                *--* <-- y1
+                | /|
+                |/ |
+                *--* <-- y2
+                2  3
+            */
+            vec3 p0
+            vec3 p1
+            vec3 p2
+            vec3 p3
+            //set y components
+            p0.d[1] = y1;
+            p1.d[1] = y1;
+            
+            p2.d[1] = y2;
+            p3.d[1] = y2;
+            //x component and z compoent of 
+            p0.d[0] = r1*sin((PI*2/(longs+1)) * j);
+            p0.d[2] = r1*cos((PI*2/(longs+1)) * j);            
+            
+            p2.d[0] = r2*sin((PI*2/(longs+1)) * j);
+            p2.d[2] = r2*cos((PI*2/(longs+1)) * j);
+            
+            
+            p1.d[0] = r1*sin((PI*2/(longs+1)) * (j+1));
+            p1.d[2] = r1*cos((PI*2/(longs+1)) * (j+1));
+            
+            p3.d[0] = r2*sin((PI*2/(longs+1)) * (j+1));
+            p3.d[2] = r2*cos((PI*2/(longs+1)) * (j+1));
+            
+            //so far, these have been specified as
+            //pointing on a cylindder. We want them pointing
+            //on a sphere. Normalize to do that.
 
-fn inline drawSphere(float r, uint midrings, uint vrings):
+            
+            if(i == 0)
+                vec3 q
 
+                //we only render the P1, P2, P3 triangle
+                q := p1;
+                glNormal3fv(q.d);
+                q.scale(r);
+                glVertex3fv(q.d);
+                
+                q := p2;
+                glNormal3fv(q.d);
+                q.scale(r);
+                glVertex3fv(q.d);
+                
+                q := p3;
+                glNormal3fv(q.d);
+                q.scale(r);
+                glVertex3fv(q.d);
+                
+                
+            elif(i == lats)
+                vec3 q
+
+                //we only render the P0,P2, P1 triangle
+                q := p0;
+                glNormal3fv(q.d);
+                q.scale(r);
+                glVertex3fv(q.d);
+                
+                q := p2;
+                glNormal3fv(q.d);
+                q.scale(r);
+                glVertex3fv(q.d);
+                
+                q := p1;
+                glNormal3fv(q.d);
+                q.scale(r);
+                glVertex3fv(q.d);
+                
+            else
+                vec3 q
+                //we render both triangles
+
+                
+                q := p0;
+                glNormal3fv(q.d);
+                q.scale(r);
+                glVertex3fv(q.d);
+                
+                q := p2;
+                glNormal3fv(q.d);
+                q.scale(r);
+                glVertex3fv(q.d);
+                
+                q := p1;
+                glNormal3fv(q.d);
+                q.scale(r);
+                glVertex3fv(q.d);
+                
+                //triangle 2...
+                
+                q := p1;
+                glNormal3fv(q.d);
+                q.scale(r);
+                glVertex3fv(q.d);
+                
+                q := p2;
+                glNormal3fv(q.d);
+                q.scale(r);
+                glVertex3fv(q.d);
+                
+                q := p3;
+                glNormal3fv(q.d);
+                q.scale(r);
+                glVertex3fv(q.d);
+                
+            end
+        end
+    end
 end
 
 fn inline drawCone(float rbase, float h, uint vrings):
