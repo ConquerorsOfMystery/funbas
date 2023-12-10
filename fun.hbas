@@ -657,8 +657,107 @@ fn inline drawCone(float rbase, float h, uint vrings):
 
 end
 
-fn inline drawCylinder(float r, float h, uint vrings):
+fn inline drawCylinder(float r, float h, uint longs):
+    uint i = 0;
+    uint j
 
+    /*
+        This code is nearly identical to the sphere code
+    */
+    double y1
+    double r1
+    double y2
+    double r2
+    y1 = constexprf(1/2.0);
+    
+    y2 = constexprf(-1/2.0);
+    for(j = 0, j < longs+1, j++)
+        /*
+            0  1
+            *--* <-- y1
+            | /|
+            |/ |
+            *--* <-- y2
+            2  3
+        */
+        vec3 p0
+        vec3 p1
+        vec3 p2
+        vec3 p3
+        vec3 n
+        //set y components
+        p0.d[1] = y1;
+        p1.d[1] = y1;
+        
+        p2.d[1] = y2;
+        p3.d[1] = y2;
+        //x component and z component of 
+        p0.d[0] = sin((PI*2/(longs+1)) * j);
+        p0.d[2] = cos((PI*2/(longs+1)) * j);            
+        
+        p2.d[0] = sin((PI*2/(longs+1)) * j);
+        p2.d[2] = cos((PI*2/(longs+1)) * j);
+        
+        
+        p1.d[0] = sin((PI*2/(longs+1)) * (j+1));
+        p1.d[2] = cos((PI*2/(longs+1)) * (j+1));
+        
+        p3.d[0] = sin((PI*2/(longs+1)) * (j+1));
+        p3.d[2] = cos((PI*2/(longs+1)) * (j+1));
+        
+        //so far, these have been specified as
+        //pointing on a cylindder. We want them pointing
+        //on a sphere. Normalize to do that.
+        if(1)
+            vec3 q
+            //we render both triangles
+            q := p0;
+            q.d[1] = 0;
+            glNormal3fv(q.d);
+            q := p0;
+            q.scale(r);
+            glVertex3fv(q.d);
+            
+            q := p2;
+            q.d[1] = 0;
+            glNormal3fv(q.d);
+            q := p2;
+            q.scale(r);
+            glVertex3fv(q.d);
+            
+            q := p1;
+            q.d[1] = 0;
+            glNormal3fv(q.d);
+            q := p1;
+            q.scale(r);
+            glVertex3fv(q.d);
+            
+            //triangle 2...
+            
+            q := p1;
+            q.d[1] = 0;
+            glNormal3fv(q.d);
+            q := p1;
+            q.scale(r);
+            glVertex3fv(q.d);
+            
+            q := p2;
+            q.d[1] = 0;
+            glNormal3fv(q.d);
+            q := p2;
+            q.scale(r);
+            glVertex3fv(q.d);
+            
+            q := p3;
+            q.d[1] = 0;
+            glNormal3fv(q.d);
+            q := p3;
+            q.scale(r);
+            glVertex3fv(q.d);
+        end
+    end
+    //tube part done
+    //TODO - the top/bottom parts.
 end
 
 
