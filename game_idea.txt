@@ -1,0 +1,15 @@
+
+I WANT TO MAKE A VIDEO GAME
+
+Description and desired qualities:
+* Open world, Exploration
+* Sandbox
+* Top-down 3D
+* Easy controls, should be simple enough to work with a Genesis Controller
+(D-pad + ABC + Start or arrows + ZXC + Enter)
+* Simple but interesting graphics, emphasis on "unusual effects" over
+detailed art
+* Level editor
+* Simple combat and controls- ?Turn Based?
+
+
