@@ -11,5 +11,25 @@ Description and desired qualities:
 detailed art
 * Level editor
 * Simple combat and controls- ?Turn Based?
+* Graphics that revolve around interesting/wondrous visuals, pretty stuff
+* Entertaining Story
+
+ARCHITECTURE
+* Seabass as programming language using Funbas library
+* OpenGL 1.1 graphics OR raytraced. Flat-colored spheres and boxes with simple shadows.
+* CPU texture effects for BGs
+* Textured text
+* Simple AABB/Sphere based Physics engine, simple colliders
+* Entities use sphere colliders usually
+* Levels are 3D but built to be functionally 2D
+
+GAMEPLAY
+* Super-monkey-ball-esque abstract exploration/adventure
+* Strategy > Reflexes, I don't think I want turn-based interaction but I want it to be a puzzle
+* "Good guy" gameplay is heavily rewarded, the game should incentivize behaving like what Christ told us to do,
+"Love one another even as I have loved you" rather than something like Skyrim or GTA which will have you "win" being
+a thief. Hopefully it would actually train this behavior.
+
+
 
 
