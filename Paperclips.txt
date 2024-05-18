@@ -1,0 +1,40 @@
+
+IDEA: MAKE A GAME LIKE PAPERCLIP SIMULATOR, BUT WITH MORE
+GRAPHICS/PHYSICS
+
+Zany story, simulation game where the excitement comes from
+seeing catchy taglines, maybe some pretty things, and "number big".
+
+I especially like the idea of having visualized battles or "growth"
+of some kind which the player can appreciate.
+
+IDEA 1- EMPIRE SIMULATOR
+
+Pseudo-realistic (i.e. not) government simulator. You play a king
+who runs a government from his castle.
+
+IDEA 2- AI WARS
+
+Play as different AI-powered empires of bad guys who all war
+against each other.
+
+IDEA 3- BEE SIMULATOR
+
+Play as a beehive or ant colony or something. Make new colonies.
+
+IDEA 4- MATH SIMULATOR?
+
+Vague, fuzz idea that you could use real self-modifying code to
+explore mathematics.
+
+?? - HOW DO WE DO "NUMBER BIG" - ??
+
+Solution 1: Just use 64 bit integers? Perhaps those are big enough.
+
+Solution 2: Use a bignum implementation? All it needs to do is
+addition and multiplication, no division.
+
+Solution 3: 128 bit, maybe 256 bit integers?
+
+
+
