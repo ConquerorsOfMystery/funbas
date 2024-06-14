@@ -11,7 +11,7 @@ struct snake_segment
 end
 
 //constants... accessed with constexpri(NAME)
-codegen int SNAKE_MAX_SEGS = 20;
+codegen int SNAKE_MAX_SEGS = 30;
 codegen int SCREEN_WIDTH = 128/2;
 codegen int SCREEN_HEIGHT = 72/2;
 #define DIR_UP 1
@@ -19,6 +19,7 @@ codegen int SCREEN_HEIGHT = 72/2;
 #define DIR_RIGHT 3
 #define DIR_DOWN 4
 
+//segments the snake has...
 snake_segment[SNAKE_MAX_SEGS] segs;
 
 
@@ -214,10 +215,11 @@ fn appUpdate:
         //glColor3f(0.8,0.8,1);
         //renderText("Hello World!\nEnjoying the view?", ourFont, 100, 128,128);
         if(mode == -1)
-        
+            //Render the main menu...
             glColor3f(0.8,0.8,1);
             renderText("Press any key", ourFont, 100, 128,128);
         elif(mode == 0)
+            //The game!
             if(stall > 0)
                 stall--;
             else
@@ -238,23 +240,23 @@ fn appUpdate:
             renderSnake();
             
         elif(mode == 1)
-            //win
-            glColor3f(0.8,0.8,1);
-            renderText("You Won!", ourFont, 100, 128,128);
+            //win screen
             glDisable(GL_BLEND);
             //render the food...
             renderFood();
             //render the snake...
             renderSnake();
-        elif(mode == 2)
-            //lose
             glColor3f(0.8,0.8,1);
-            renderText("You Lost!", ourFont, 100, 128,128);
-            glDisable(GL_BLEND);
-                //render the food...
+            renderText("You Won!", ourFont, 100, 128,128);
+        elif(mode == 2)
+            //lose screen
+            //render the food...
             renderFood();
             //render the snake...
             renderSnake();
+            glColor3f(0.8,0.8,1);
+            renderText("You Lost!", ourFont, 100, 128,128);
+            glDisable(GL_BLEND);
         end
 
     endUI();

@@ -37,4 +37,11 @@ addition and multiplication, no division.
 Solution 3: 128 bit, maybe 256 bit integers?
 
 
+I think I want to make a nation state simulator or an AI simulator game... I want some
+sort of fun automata stuff that feels sort of like redstone in minecraft (like, you can
+program it).
+
+An automata-oriented empire game. Hmmm....
+
+
 

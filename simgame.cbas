@@ -1,0 +1,120 @@
+#include "funbas.hbas"
+
+    
+byte* ourFont = 0; //the variable used to store our font!
+uint texid = 0;
+byte[3 * 1280 * 720] texdata; //the texture data
+
+fn updateTexture():
+    glBindTexture(GL_TEXTURE_2D, texid);
+    glTexImage2D(
+        GL_TEXTURE_2D,
+        0,
+        GL_RGB,
+        1280,
+        720,
+        0,
+        GL_RGB,
+        GL_UNSIGNED_BYTE,
+        texdata
+    );
+    byte* q = glGetString(glGetError);
+    if(q != 0)
+        println(q);
+    end
+end
+
+fn appInit():
+    openWindow(
+        "Joy!",
+        1280,
+        720
+    );
+    setSwapInterval(1); //enable Vsync
+    //load our font! (Must be AFTER openWindow)
+    ourFont = loadFont(
+        "fonts/jupiteroid/Bold.ttf", 
+        128
+    );
+    glGenTextures(1, getglobalptr(texid));
+    updateTexture();
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+end
+
+
+uint framecounter = 0;
+fn appUpdate():
+    clearScreen(0.1,0.1,0.3);
+    beginUI();
+        //draw a gradient...
+        framecounter++;
+        int i int j
+        for(i = 0; i < 720; i++)
+            byte* p = texdata + 3 * 1280 * i; //row pointer, first pixel
+            for(j = 0; j < 1280 * 3; j++)
+                p[j] = i + framecounter;
+            end
+        end
+        updateTexture();
+        glColor3f(0.5,0.5,0.5);
+        glEnable(GL_TEXTURE_2D);
+        glBegin(GL_TRIANGLES);
+            glTexCoord2f(0,0);glVertex2f(0,0);
+            glTexCoord2f(0,1);glVertex2f(0,720);
+            glTexCoord2f(1,1);glVertex2f(1280,720);
+            glTexCoord2f(0,0);glVertex2f(0,0);
+            glTexCoord2f(1,1);glVertex2f(1280,720);
+            glTexCoord2f(1,0);glVertex2f(1280,0);
+        glEnd;
+        
+        glColor3f(0.8,0.8,1);
+        renderText(
+            //this is our text! the `\n` means `newline`.
+            "Hello World!\nEnjoying the view?", 
+            ourFont,
+            100, //this is the X coordinate of the bottom left corner of the first character.
+                 //we choose 100 pixels from the left edge.
+            128, //this is the Y coordinate. We choose 128 pixels from the top of the screen.
+            128  //this is the amount of "vertical spacing" that a newline introduces.
+        );
+    endUI();
+    swapDisplay();
+end
+
+fn appClose():
+    free(ourFont);
+    closeWindow;
+end
+
+fn onClick(int btn, int state):
+
+end
+
+fn onTextInput(char* text):
+
+end
+
+fn onTextEdit(char* text, int start, int length):
+
+end
+
+fn onKey(int kc, char state):
+    if(state == 0 && kc == KEY_ESCAPE)
+        appClose();
+        sys_exit(0);
+    end
+end
+
+fn onKeyRepeat(int kc, char state):
+
+end
+
+
+fn onResize(int w, int h):
+    glViewport(0,0,width,height);
+end
+
+fn onScroll(int x, int y):
+
+end
